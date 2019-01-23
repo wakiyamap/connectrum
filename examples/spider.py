@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     print("%d servers are known to us at start" % len(ks))
 
-    loop = asyncio.get_event_loop()  
+    loop = asyncio.get_event_loop()
 
     # cannot reach .onion if not using Tor; so filter them out
     if not args.tor:

@@ -38,10 +38,10 @@ async def listen(conn, svr, connector, method, args, verbose=False):
 def main():
     parser = argparse.ArgumentParser(description='Subscribe to BTC events')
     parser.add_argument('method', 
-                        help='"blockchain.headers.subscribe" or similar')
+                        help='"electrumx.tamami-foundation.org" or similar')
     parser.add_argument('args', nargs="*", default=[],
                         help='Arguments for method')
-    parser.add_argument('--server', default='cluelessperson.com',
+    parser.add_argument('--server', default='electrumx.tamami-foundation.org',
                         help='Hostname of Electrum server to use')
     parser.add_argument('--protocol', default='s',
                         help='Protocol code: t=TCP Cleartext, s=SSL, etc')

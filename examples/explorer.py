@@ -14,6 +14,7 @@ from aiohttp import web
 from aiohttp.web import HTTPFound, Response
 from connectrum.client import StratumClient
 from connectrum.svr_info import KnownServers, ServerInfo
+from connectrum.utils import address_to_scripthash
 from connectrum import ElectrumErrorResponse
 
 top_blk = 6666
@@ -24,14 +25,14 @@ HTML_HDR = '''
         body { margin: 20px; }
     </style>
     <body>
-    <a href="/"><h1>Explore Bitcoin</h1></a>
+    <a href="/"><h1>Explore Monacoin</h1></a>
 '''
 
 def linkage(n, label=None):
     n = str(n)
     if len(n) == 64:
         t = 'txn'
-    elif len(n) < 7:
+    elif len(n) < 8:
         t = 'blk'
     else:
         t = 'addr'
@@ -53,7 +54,7 @@ async def homepage(request):
     t += '<pre style="font-size: 50%%">\n%s\n</pre><hr/>' % motd
 
     t += '<p>Donations: %s</p>' % linkage(donate)
-    t += '</p><p>Top block: %s</p>' % linkage(top_blk['block_height'])
+    t += '</p><p>Top block: %s</p>' % linkage(top_blk['height'])
 
 
     t += '''
@@ -100,12 +101,12 @@ async def search(request):
     if not (1 <= len(query) <= 200):
         raise HTTPFound('/')
 
-    if len(query) <= 7:
+    if len(query) <= 8:
         raise HTTPFound('/blk/'+query.lower())
     elif len(query) == 64:
         # assume it's a hash of block or txn
         raise HTTPFound('/txn/'+query.lower())
-    elif query[0] in '13mn':
+    elif query[0] in 'MPmn':
         # assume it'a payment address
         raise HTTPFound('/addr/'+query)
     else:
@@ -116,17 +117,18 @@ async def address_page(request):
     # address summary by bitcoin payment addr
     addr = request.match_info['addr']
     conn = request.app['conn']
+    sh = address_to_scripthash(addr)
 
     t = HTML_HDR
     t += '<h1><code>%s</code></h1>' % addr
 
-    for method in ['blockchain.address.get_balance',
+    for method in ['blockchain.scripthash.get_balance',
                     #'blockchain.address.get_status',
-                    'blockchain.address.get_mempool',
+                    'blockchain.scripthash.get_mempool',
                     #'blockchain.address.get_proof',
-                    'blockchain.address.listunspent']:
+                    'blockchain.scripthash.listunspent']:
         # get a balance, etc.
-        t += await call_and_format(conn, method, addr)
+        t += await call_and_format(conn, method, sh)
     
     return Response(content_type='text/html', text=t)
 
@@ -151,7 +153,7 @@ async def block_page(request):
     t = HTML_HDR
     t += '<h2>Block %d</h2>' % height
 
-    for method in ['blockchain.block.get_header']:
+    for method in ['blockchain.block.header']:
         t += await call_and_format(conn, method, height)
 
     t += '<hr/><p>%s &nbsp;&nbsp; %s</p>' % (linkage(height-1, "PREV"), linkage(height+1, "NEXT"))
@@ -195,8 +197,8 @@ if __name__ == "__main__":
         assert servers, "Need some servers to talk to."
         el_server = servers[0]
     else:
-        el_server = ServerInfo('hardcoded', 'VPS.hsmiths.com', 's')
-        #el_server = ServerInfo('hardcoded', 'daedalus.bauerj.eu', 's')
+        el_server = ServerInfo('hardcoded', 'electrumx.tamami-foundation.org', 's')
+        #el_server = ServerInfo('hardcoded', 'VPS.hsmiths.com', 's')
 
     loop = asyncio.get_event_loop()
     loop.create_task(startup_code(app))
