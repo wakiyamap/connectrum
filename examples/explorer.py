@@ -54,7 +54,7 @@ async def homepage(request):
     t += '<pre style="font-size: 50%%">\n%s\n</pre><hr/>' % motd
 
     t += '<p>Donations: %s</p>' % linkage(donate)
-    t += '</p><p>Top block: %s</p>' % linkage(top_blk['height'])
+    t += '</p><p>Top block: %s</p>' % linkage(top_blk['block_height'])
 
 
     t += '''
@@ -153,7 +153,8 @@ async def block_page(request):
     t = HTML_HDR
     t += '<h2>Block %d</h2>' % height
 
-    for method in ['blockchain.block.header']:
+    #TODO get_header will be removed
+    for method in ['blockchain.block.get_header']:
         t += await call_and_format(conn, method, height)
 
     t += '<hr/><p>%s &nbsp;&nbsp; %s</p>' % (linkage(height-1, "PREV"), linkage(height+1, "NEXT"))
