@@ -141,7 +141,7 @@ async def transaction_page(request):
     t += '<h2><code>%s</code></h2>' % txn_hash
 
     for method in ['blockchain.transaction.get']:
-        t += await call_and_format(conn, method, txn_hash)
+        t += await call_and_format(conn, method, txn_hash, 1)
     
     return Response(content_type='text/html', text=t)
     
